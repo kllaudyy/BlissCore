@@ -1,0 +1,18 @@
+name: BlissCore
+version: '${version}'
+main: com.example.blisscore.BlissCore
+api-version: '1.21'
+description: Bliss SMP Gem System
+author: YourName
+commands:
+  bliss:
+    description: Main BlissCore command
+    usage: /<command> [subcommand]
+    aliases: [gems, bg]
+permissions:
+  bliss.admin:
+    description: Admin access
+    default: op
+  bliss.user:
+    description: Player access
+    default: true
