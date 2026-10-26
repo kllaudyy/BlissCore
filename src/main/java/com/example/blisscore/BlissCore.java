@@ -7,6 +7,7 @@ import com.example.blisscore.items.ItemManager;
 import com.example.blisscore.listeners.CombatListener;
 import com.example.blisscore.listeners.GemListener;
 import com.example.blisscore.listeners.ItemListener;
+import com.example.blisscore.listeners.PlayerDeathListener; // Импорт
 import com.example.blisscore.listeners.PlayerJoinListener;
 import com.example.blisscore.manager.GemManager;
 import com.example.blisscore.recipes.RecipeManager;
@@ -36,26 +37,21 @@ public final class BlissCore extends JavaPlugin {
 
         new RecipeManager(this).registerRecipes();
 
-        // Передаем "this" (главный класс) во все слушатели, которым нужно сохранять данные
         getServer().getPluginManager().registerEvents(new GemListener(gemManager), this);
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(this), this);
-        getServer().getPluginManager().registerEvents(new ItemListener(this), this); // <-- ИЗМЕНЕНО
+        getServer().getPluginManager().registerEvents(new ItemListener(this), this);
         getServer().getPluginManager().registerEvents(new CombatListener(gemManager), this);
+        // НОВОЕ: Слушатель смертей
+        getServer().getPluginManager().registerEvents(new PlayerDeathListener(this), this);
 
         getServer().getScheduler().runTaskTimer(this, () -> gemManager.tickPassives(), 20L, 20L);
         getServer().getScheduler().runTaskTimer(this, new ActionBarTask(gemManager), 0L, 10L);
 
         getCommand("bliss").setExecutor(new BlissCommand(this));
 
-        getLogger().info("BlissCore запущен! Система сохранений активна.");
+        getLogger().info("BlissCore запущен! Система энергии активна.");
     }
 
-    public GemManager getGemManager() {
-        return gemManager;
-    }
-
-    // НОВОЕ: Метод, чтобы другие классы могли обращаться к сохранению
-    public DataManager getDataManager() {
-        return dataManager;
-    }
+    public GemManager getGemManager() { return gemManager; }
+    public DataManager getDataManager() { return dataManager; }
 }
