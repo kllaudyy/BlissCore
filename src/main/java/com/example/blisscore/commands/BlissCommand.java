@@ -14,6 +14,8 @@ public class BlissCommand implements CommandExecutor {
     public BlissCommand(BlissCore plugin) {
         register(new GiveSubCommand(plugin.getGemManager()));
         register(new SmpStartSubCommand(plugin));
+        // НОВОЕ: Регистрируем Trust (он ловит и trust, и untrust)
+        register(new TrustSubCommand(plugin.getGemManager()));
     }
 
     private void register(SubCommand cmd) { subCommands.put(cmd.getName().toLowerCase(), cmd); }
@@ -24,10 +26,17 @@ public class BlissCommand implements CommandExecutor {
             sender.sendMessage("§6=== BlissCore ===");
             sender.sendMessage("§e/bliss give <player> <gem>");
             sender.sendMessage("§e/bliss smp start");
+            sender.sendMessage("§e/bliss trust <player> / untrust <player>");
             return true;
         }
 
-        SubCommand sub = subCommands.get(args[0].toLowerCase());
+        // Если игрок ввел "untrust", мы перенаправляем его на "trust" команду
+        String subName = args[0].toLowerCase();
+        if (subName.equals("untrust")) {
+            subName = "trust";
+        }
+
+        SubCommand sub = subCommands.get(subName);
         if (sub == null) { sender.sendMessage("§cНеизвестная подкоманда."); return true; }
         if (!sender.hasPermission(sub.getPermission())) { sender.sendMessage("§cНет прав!"); return true; }
         
