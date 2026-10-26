@@ -5,8 +5,10 @@ import com.example.blisscore.core.Ability;
 import com.example.blisscore.core.Passive;
 import com.example.blisscore.data.DataManager;
 import com.example.blisscore.data.PlayerGemData;
+import com.example.blisscore.items.ItemManager; // НОВЫЙ ИМПОРТ
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack; // НОВЫЙ ИМПОРТ
 
 import java.util.*;
 
@@ -14,7 +16,6 @@ public class GemManager {
     private final Map<String, GemDefinition> registry = new HashMap<>();
     private final Map<UUID, PlayerGemData> playerData = new HashMap<>();
     
-    // НОВОЕ: Ссылка на наш "архивариус"
     private DataManager dataManager;
 
     public void setDataManager(DataManager dataManager) {
@@ -30,7 +31,6 @@ public class GemManager {
     public Collection<GemDefinition> getAllGems() { return registry.values(); }
 
     public PlayerGemData getData(Player player) {
-        // Если данных в памяти нет — загружаем их с диска через DataManager
         if (!playerData.containsKey(player.getUniqueId())) {
             if (dataManager != null) {
                 playerData.put(player.getUniqueId(), dataManager.loadData(player.getUniqueId()));
@@ -44,21 +44,36 @@ public class GemManager {
     public void equipGem(Player player, String gemId) {
         GemDefinition gem = registry.get(gemId);
         if (gem == null) throw new IllegalArgumentException("Unknown gem: " + gemId);
+        
         PlayerGemData data = getData(player);
-        if (data.getGemId() != null) unequipGem(player);
+        
+        // Если игрок уже носит гем — сначала снимаем старый
+        if (data.getGemId() != null) {
+            unequipGem(player);
+        }
+        
+        // 1. Записываем в данные
         data.setGemId(gemId);
         gem.onEquip(player);
         
-        // Сохраняем изменения на диск
+        // 2. Выдаем игроку физический предмет (Раковину Наутилуса с описанием)
+        ItemStack gemItem = ItemManager.createGemItem(gemId, data);
+        player.getInventory().addItem(gemItem);
+        
+        // 3. Сохраняем на диск
         if (dataManager != null) dataManager.saveData(data);
     }
 
     public void unequipGem(Player player) {
         PlayerGemData data = getData(player);
         if (data.getGemId() == null) return;
+        
         GemDefinition gem = registry.get(data.getGemId());
         if (gem != null) gem.onUnequip(player);
+        
         data.setGemId(null);
+        
+        // (В будущем мы здесь будем удалять сам предмет из инвентаря игрока)
         
         if (dataManager != null) dataManager.saveData(data);
     }
@@ -101,6 +116,7 @@ public class GemManager {
             return false;
         }
         if (!ability.activate(player)) return false;
+        
         data.setCooldown(ability.getId(), ability.getCooldownMillis());
         return true;
     }
