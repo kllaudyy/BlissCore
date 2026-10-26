@@ -9,6 +9,9 @@ public interface Ability {
     long getCooldownMillis();
     boolean activate(Player player);
 
+    // НОВОЕ: Какая способность требует какой тир. По умолчанию T1.
+    default Tier getRequiredTier() { return Tier.T1; }
+
     default void tick(Player player) {}
     default void onHit(Player attacker, LivingEntity target) {}
     default void onEnd(Player player) {}
