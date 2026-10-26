@@ -1,14 +1,20 @@
 package com.example.blisscore.commands;
 
+import com.example.blisscore.BlissCore;
 import com.example.blisscore.manager.GemManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class TrustSubCommand implements SubCommand {
+    
+    private final BlissCore plugin;
     private final GemManager gemManager;
 
-    public TrustSubCommand(GemManager gemManager) { this.gemManager = gemManager; }
+    public TrustSubCommand(BlissCore plugin) { 
+        this.plugin = plugin;
+        this.gemManager = plugin.getGemManager();
+    }
 
     @Override public String getName() { return "trust"; }
     @Override public String getPermission() { return "bliss.user"; }
@@ -26,7 +32,6 @@ public class TrustSubCommand implements SubCommand {
             return true;
         }
 
-        // Проверяем: пишет он "trust" (добавить) или "untrust" (удалить)
         boolean isAdding = args[0].equalsIgnoreCase("trust");
         Player target = Bukkit.getPlayer(args[1]);
 
@@ -47,6 +52,10 @@ public class TrustSubCommand implements SubCommand {
             gemManager.getData(player).removeTrusted(target.getUniqueId());
             player.sendMessage("§cВы больше не доверяете §e" + target.getName() + "§c. Осторожнее с магией!");
         }
+
+        // НОВОЕ: Сохраняем изменения списка друзей на диск
+        plugin.getDataManager().saveData(gemManager.getData(player));
+        
         return true;
     }
 }
