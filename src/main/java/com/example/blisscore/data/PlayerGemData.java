@@ -1,5 +1,7 @@
 package com.example.blisscore.data;
 
+import com.example.blisscore.core.Tier; // Импортируем наш Тир
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -8,6 +10,10 @@ public class PlayerGemData {
     private final UUID playerId;
     private String gemId;
     private int energy = 10;
+    
+    // НОВОЕ: По умолчанию у всех T1
+    private Tier tier = Tier.T1; 
+
     private final Map<String, Long> cooldowns = new HashMap<>();
 
     public PlayerGemData(UUID playerId) { this.playerId = playerId; }
@@ -15,6 +21,10 @@ public class PlayerGemData {
     public UUID getPlayerId() { return playerId; }
     public String getGemId() { return gemId; }
     public void setGemId(String id) { this.gemId = id; }
+
+    // НОВОЕ: Геттер и сеттер для Тира
+    public Tier getTier() { return tier; }
+    public void setTier(Tier tier) { this.tier = tier; }
 
     public int getEnergy() { return energy; }
     public void setEnergy(int e) { this.energy = Math.max(0, Math.min(10, e)); }
