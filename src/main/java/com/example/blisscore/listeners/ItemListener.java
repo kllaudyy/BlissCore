@@ -1,5 +1,6 @@
 package com.example.blisscore.listeners;
 
+import com.example.blisscore.BlissCore; // Импортируем наш главный класс
 import com.example.blisscore.core.Tier;
 import com.example.blisscore.data.PlayerGemData;
 import com.example.blisscore.items.ItemManager;
@@ -15,10 +16,13 @@ import org.bukkit.inventory.ItemStack;
 
 public class ItemListener implements Listener {
 
+    private final BlissCore plugin; // Храним ссылку на плагин
     private final GemManager gemManager;
 
-    public ItemListener(GemManager gemManager) {
-        this.gemManager = gemManager;
+    // В конструктор теперь передается BlissCore
+    public ItemListener(BlissCore plugin) {
+        this.plugin = plugin;
+        this.gemManager = plugin.getGemManager();
     }
 
     @EventHandler
@@ -42,7 +46,6 @@ public class ItemListener implements Listener {
 
             PlayerGemData data = gemManager.getData(player);
 
-            // Проверяем, не T2 ли уже
             if (data.getTier() == Tier.T2) {
                 player.sendMessage("§cВаш гем уже максимального уровня (T2)!");
                 return;
@@ -50,13 +53,14 @@ public class ItemListener implements Listener {
 
             // Улучшаем!
             data.setTier(Tier.T2);
-            // НОВОЕ: Сохраняем на диск
-            new DataManager(plugin).saveData(data); // (нужно будет передать plugin в ItemListener)
+            
+            // НОВОЕ: Сохраняем на диск через DataManager плагина
+            plugin.getDataManager().saveData(data);
+            
             player.sendMessage("§a§lУСПЕХ! §aВаш гем улучшен до Тира 2!");
             player.sendMessage("§eИспользуйте §6Shift + ПКМ §eчтобы активировать новую способность!");
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.5f);
             
-            // Забираем улучшатель
             item.setAmount(item.getAmount() - 1);
         }
     }
