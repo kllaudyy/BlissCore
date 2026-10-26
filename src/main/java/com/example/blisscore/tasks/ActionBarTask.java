@@ -24,14 +24,18 @@ public class ActionBarTask extends BukkitRunnable {
             if (gem == null) continue;
             PlayerGemData data = gemManager.getData(player);
 
-            // НОВОЕ: Добавляем отображение Тира (T1 / T2)
+            // Если гем сломан (0 энергии) — показываем это красным
+            if (data.isBroken()) {
+                player.sendActionBar(Component.text("§c§lГЕМ СЛОМАН §c| Энергия: 0/10 | Используйте Repair Kit"));
+                continue;
+            }
+
             Component gemName = Component.text(gem.getDisplayName() + " " + data.getTier())
                     .color(NamedTextColor.GOLD).decoration(TextDecoration.BOLD, true);
             
             Component energyText = Component.text(" | Energy: " + data.getEnergy() + "/10")
-                    .color(data.isBroken() ? NamedTextColor.RED : NamedTextColor.GREEN);
+                    .color(data.isRuined() ? NamedTextColor.RED : NamedTextColor.GREEN); // Ruined — красным
 
-            // Показываем кулдаун способности текущего тира
             Tier targetTier = data.getTier();
             Component cooldownText = Component.empty();
             
