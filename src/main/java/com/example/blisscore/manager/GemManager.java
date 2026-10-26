@@ -14,8 +14,7 @@ public class GemManager {
     private final Map<UUID, PlayerGemData> playerData = new HashMap<>();
 
     public void registerGem(GemDefinition gem) {
-        if (registry.containsKey(gem.getId()))
-            throw new IllegalArgumentException("Duplicate gem: " + gem.getId());
+        if (registry.containsKey(gem.getId())) throw new IllegalArgumentException("Duplicate gem: " + gem.getId());
         registry.put(gem.getId(), gem);
     }
 
@@ -58,10 +57,15 @@ public class GemManager {
         }
     }
 
+    // НОВОЕ: Проверка, доверяет ли игрок (source) другому игроку (target)
+    public boolean isTrusted(Player source, Player target) {
+        if (source.equals(target)) return true; // Сам себе всегда "друг" (не бьем себя)
+        return getData(source).isTrusted(target.getUniqueId());
+    }
+
     public boolean activateAbility(Player player, Ability ability) {
         PlayerGemData data = getData(player);
         
-        // НОВОЕ: Проверяем тир. Если способность требует T2, а у гема T1 — не даем использовать.
         if (data.getTier().ordinal() < ability.getRequiredTier().ordinal()) {
             player.sendMessage("§cЭта способность требует улучшения гема до " + ability.getRequiredTier() + "!");
             return false;
