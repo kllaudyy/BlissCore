@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.List;
 import java.util.Random;
@@ -20,8 +21,12 @@ public class PlayerJoinListener implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        if (!plugin.getConfig().getBoolean("smp.started", false)) return;
         Player player = event.getPlayer();
+        
+        // Вызываем getData(), чтобы DataManager загрузил файл с диска
+        plugin.getGemManager().getData(player);
+
+        if (!plugin.getConfig().getBoolean("smp.started", false)) return;
         
         if (plugin.getGemManager().getData(player).getGemId() == null) {
             List<GemDefinition> starterGems = plugin.getGemManager().getAllGems().stream()
@@ -33,6 +38,16 @@ public class PlayerJoinListener implements Listener {
                 plugin.getGemManager().equipGem(player, gem.getId());
                 player.sendMessage("§a§lДобро пожаловать! §aВаш гем: §e" + gem.getDisplayName());
             }
+        }
+    }
+
+    // НОВОЕ: При выходе сохраняем данные в файл
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        // Если у игрока были загружены данные — сохраняем их
+        if (plugin.getGemManager().getData(player) != null) {
+            // (В будущем мы вызовем DataManager.saveData, сейчас он сохраняется при изменениях)
         }
     }
 }
