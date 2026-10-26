@@ -50,6 +50,8 @@ public class ItemListener implements Listener {
 
             // Улучшаем!
             data.setTier(Tier.T2);
+            // НОВОЕ: Сохраняем на диск
+            new DataManager(plugin).saveData(data); // (нужно будет передать plugin в ItemListener)
             player.sendMessage("§a§lУСПЕХ! §aВаш гем улучшен до Тира 2!");
             player.sendMessage("§eИспользуйте §6Shift + ПКМ §eчтобы активировать новую способность!");
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.5f);
