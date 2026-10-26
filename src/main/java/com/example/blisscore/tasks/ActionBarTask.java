@@ -2,6 +2,7 @@ package com.example.blisscore.tasks;
 
 import com.example.blisscore.core.Ability;
 import com.example.blisscore.core.GemDefinition;
+import com.example.blisscore.core.Tier;
 import com.example.blisscore.data.PlayerGemData;
 import com.example.blisscore.manager.GemManager;
 import net.kyori.adventure.text.Component;
@@ -23,24 +24,32 @@ public class ActionBarTask extends BukkitRunnable {
             if (gem == null) continue;
             PlayerGemData data = gemManager.getData(player);
 
-            Component gemName = Component.text(gem.getDisplayName())
+            // НОВОЕ: Добавляем отображение Тира (T1 / T2)
+            Component gemName = Component.text(gem.getDisplayName() + " " + data.getTier())
                     .color(NamedTextColor.GOLD).decoration(TextDecoration.BOLD, true);
+            
             Component energyText = Component.text(" | Energy: " + data.getEnergy() + "/10")
                     .color(data.isBroken() ? NamedTextColor.RED : NamedTextColor.GREEN);
 
+            // Показываем кулдаун способности текущего тира
+            Tier targetTier = data.getTier();
             Component cooldownText = Component.empty();
-            if (!gem.getAbilities().isEmpty()) {
-                Ability primary = gem.getAbilities().get(0);
-                long cd = data.getRemainingCooldown(primary.getId());
-                if (cd > 0) {
-                    long seconds = (cd / 1000) + 1;
-                    cooldownText = Component.text(" | " + primary.getDisplayName() + ": " + seconds + "s")
-                            .color(NamedTextColor.RED);
-                } else {
-                    cooldownText = Component.text(" | " + primary.getDisplayName() + ": Ready")
-                            .color(NamedTextColor.GRAY);
+            
+            for (Ability ab : gem.getAbilities()) {
+                if (ab.getRequiredTier() == targetTier) {
+                    long cd = data.getRemainingCooldown(ab.getId());
+                    if (cd > 0) {
+                        long seconds = (cd / 1000) + 1;
+                        cooldownText = Component.text(" | " + ab.getDisplayName() + ": " + seconds + "s")
+                                .color(NamedTextColor.RED);
+                    } else {
+                        cooldownText = Component.text(" | " + ab.getDisplayName() + ": Ready")
+                                .color(NamedTextColor.GRAY);
+                    }
+                    break;
                 }
             }
+            
             player.sendActionBar(Component.empty().append(gemName).append(energyText).append(cooldownText));
         }
     }
