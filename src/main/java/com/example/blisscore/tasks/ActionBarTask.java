@@ -7,7 +7,6 @@ import com.example.blisscore.data.PlayerGemData;
 import com.example.blisscore.manager.GemManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -24,37 +23,37 @@ public class ActionBarTask extends BukkitRunnable {
             if (gem == null) continue;
             PlayerGemData data = gemManager.getData(player);
 
-            // Если гем сломан (0 энергии) — показываем это красным
             if (data.isBroken()) {
-                player.sendActionBar(Component.text("§c§lГЕМ СЛОМАН §c| Энергия: 0/10 | Используйте Repair Kit"));
+                player.sendActionBar(Component.text("BROKEN | 0/10 Energy").color(NamedTextColor.DARK_RED));
                 continue;
             }
 
-            Component gemName = Component.text(gem.getDisplayName() + " " + data.getTier())
-                    .color(NamedTextColor.GOLD).decoration(TextDecoration.BOLD, true);
-            
-            Component energyText = Component.text(" | Energy: " + data.getEnergy() + "/10")
-                    .color(data.isRuined() ? NamedTextColor.RED : NamedTextColor.GREEN); // Ruined — красным
+            // Собираем текст в стиле твоего скрина
+            Component message = Component.empty();
 
-            Tier targetTier = data.getTier();
-            Component cooldownText = Component.empty();
-            
+            // Добавляем статус каждой способности
             for (Ability ab : gem.getAbilities()) {
-                if (ab.getRequiredTier() == targetTier) {
-                    long cd = data.getRemainingCooldown(ab.getId());
-                    if (cd > 0) {
-                        long seconds = (cd / 1000) + 1;
-                        cooldownText = Component.text(" | " + ab.getDisplayName() + ": " + seconds + "s")
-                                .color(NamedTextColor.RED);
-                    } else {
-                        cooldownText = Component.text(" | " + ab.getDisplayName() + ": Ready")
-                                .color(NamedTextColor.GRAY);
-                    }
-                    break;
+                if (ab.getRequiredTier() != data.getTier()) continue;
+
+                long cd = data.getRemainingCooldown(ab.getId());
+                
+                if (cd > 0) {
+                    // Кулдаун (желтый/оранжевый)
+                    long seconds = (cd / 1000) + 1;
+                    message = message.append(Component.text(seconds + "s ").color(NamedTextColor.YELLOW));
+                } else {
+                    // Готово (зеленый)
+                    message = message.append(Component.text("Ready! ").color(NamedTextColor.GREEN));
                 }
+                
+                message = message.append(Component.text(ab.getDisplayName() + " ").color(NamedTextColor.GRAY));
             }
-            
-            player.sendActionBar(Component.empty().append(gemName).append(energyText).append(cooldownText));
+
+            // Добавляем энергетику справа
+            message = message.append(Component.text(" | 🔥 " + data.getEnergy() + "/10")
+                    .color(data.isRuined() ? NamedTextColor.RED : NamedTextColor.AQUA));
+
+            player.sendActionBar(message);
         }
     }
 }
