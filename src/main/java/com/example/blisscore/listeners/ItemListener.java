@@ -1,5 +1,7 @@
 package com.example.blisscore.listeners;
 
+import com.example.blisscore.core.Tier;
+import com.example.blisscore.data.PlayerGemData;
 import com.example.blisscore.items.ItemManager;
 import com.example.blisscore.manager.GemManager;
 import org.bukkit.Sound;
@@ -30,22 +32,29 @@ public class ItemListener implements Listener {
         String customId = ItemManager.getCustomItemId(item);
         if (customId == null) return;
 
-        // Если игрок кликнул Улучшателем
         if (customId.equals("gem_upgrader")) {
-            event.setCancelled(true); // Отменяем стандартное действие
+            event.setCancelled(true);
 
-            // Проверяем, есть ли у него гем
             if (gemManager.getEquippedGem(player) == null) {
                 player.sendMessage("§cУ вас нет активного гема!");
                 return;
             }
 
-            // ЗАГЛУШКА: Тут мы позже напишем логику улучшения.
-            // Пока просто сообщение.
-            player.sendMessage("§aУлучшатель использован! (Логика T2 скоро появится)");
+            PlayerGemData data = gemManager.getData(player);
+
+            // Проверяем, не T2 ли уже
+            if (data.getTier() == Tier.T2) {
+                player.sendMessage("§cВаш гем уже максимального уровня (T2)!");
+                return;
+            }
+
+            // Улучшаем!
+            data.setTier(Tier.T2);
+            player.sendMessage("§a§lУСПЕХ! §aВаш гем улучшен до Тира 2!");
+            player.sendMessage("§eИспользуйте §6Shift + ПКМ §eчтобы активировать новую способность!");
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.5f);
             
-            // Удаляем улучшатель из руки (расходуем)
+            // Забираем улучшатель
             item.setAmount(item.getAmount() - 1);
         }
     }
