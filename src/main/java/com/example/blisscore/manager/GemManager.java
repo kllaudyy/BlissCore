@@ -3,6 +3,7 @@ package com.example.blisscore.manager;
 import com.example.blisscore.core.GemDefinition;
 import com.example.blisscore.core.Ability;
 import com.example.blisscore.core.Passive;
+import com.example.blisscore.data.DataManager;
 import com.example.blisscore.data.PlayerGemData;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -12,6 +13,13 @@ import java.util.*;
 public class GemManager {
     private final Map<String, GemDefinition> registry = new HashMap<>();
     private final Map<UUID, PlayerGemData> playerData = new HashMap<>();
+    
+    // НОВОЕ: Ссылка на наш "архивариус"
+    private DataManager dataManager;
+
+    public void setDataManager(DataManager dataManager) {
+        this.dataManager = dataManager;
+    }
 
     public void registerGem(GemDefinition gem) {
         if (registry.containsKey(gem.getId())) throw new IllegalArgumentException("Duplicate gem: " + gem.getId());
@@ -22,7 +30,15 @@ public class GemManager {
     public Collection<GemDefinition> getAllGems() { return registry.values(); }
 
     public PlayerGemData getData(Player player) {
-        return playerData.computeIfAbsent(player.getUniqueId(), PlayerGemData::new);
+        // Если данных в памяти нет — загружаем их с диска через DataManager
+        if (!playerData.containsKey(player.getUniqueId())) {
+            if (dataManager != null) {
+                playerData.put(player.getUniqueId(), dataManager.loadData(player.getUniqueId()));
+            } else {
+                playerData.put(player.getUniqueId(), new PlayerGemData(player.getUniqueId()));
+            }
+        }
+        return playerData.get(player.getUniqueId());
     }
 
     public void equipGem(Player player, String gemId) {
@@ -32,6 +48,9 @@ public class GemManager {
         if (data.getGemId() != null) unequipGem(player);
         data.setGemId(gemId);
         gem.onEquip(player);
+        
+        // Сохраняем изменения на диск
+        if (dataManager != null) dataManager.saveData(data);
     }
 
     public void unequipGem(Player player) {
@@ -40,6 +59,8 @@ public class GemManager {
         GemDefinition gem = registry.get(data.getGemId());
         if (gem != null) gem.onUnequip(player);
         data.setGemId(null);
+        
+        if (dataManager != null) dataManager.saveData(data);
     }
 
     public GemDefinition getEquippedGem(Player player) {
@@ -57,9 +78,8 @@ public class GemManager {
         }
     }
 
-    // НОВОЕ: Проверка, доверяет ли игрок (source) другому игроку (target)
     public boolean isTrusted(Player source, Player target) {
-        if (source.equals(target)) return true; // Сам себе всегда "друг" (не бьем себя)
+        if (source.equals(target)) return true;
         return getData(source).isTrusted(target.getUniqueId());
     }
 
