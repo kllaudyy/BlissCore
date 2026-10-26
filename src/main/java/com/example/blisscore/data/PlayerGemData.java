@@ -1,20 +1,23 @@
 package com.example.blisscore.data;
 
-import com.example.blisscore.core.Tier; // Импортируем наш Тир
+import com.example.blisscore.core.Tier;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public class PlayerGemData {
     private final UUID playerId;
     private String gemId;
     private int energy = 10;
-    
-    // НОВОЕ: По умолчанию у всех T1
-    private Tier tier = Tier.T1; 
+    private Tier tier = Tier.T1;
 
     private final Map<String, Long> cooldowns = new HashMap<>();
+
+    // НОВОЕ: Список доверенных игроков (Set хранит только уникальные значения, без дублей)
+    private final Set<UUID> trustedPlayers = new HashSet<>();
 
     public PlayerGemData(UUID playerId) { this.playerId = playerId; }
 
@@ -22,7 +25,6 @@ public class PlayerGemData {
     public String getGemId() { return gemId; }
     public void setGemId(String id) { this.gemId = id; }
 
-    // НОВОЕ: Геттер и сеттер для Тира
     public Tier getTier() { return tier; }
     public void setTier(Tier tier) { this.tier = tier; }
 
@@ -32,6 +34,12 @@ public class PlayerGemData {
 
     public boolean isBroken() { return energy <= 0; }
     public boolean isRuined() { return energy <= 1; }
+
+    // НОВОЕ: Методы для работы с доверием
+    public Set<UUID> getTrustedPlayers() { return trustedPlayers; }
+    public void addTrusted(UUID uuid) { trustedPlayers.add(uuid); }
+    public void removeTrusted(UUID uuid) { trustedPlayers.remove(uuid); }
+    public boolean isTrusted(UUID uuid) { return trustedPlayers.contains(uuid); }
 
     public boolean isOnCooldown(String abilityId) {
         Long ready = cooldowns.get(abilityId);
