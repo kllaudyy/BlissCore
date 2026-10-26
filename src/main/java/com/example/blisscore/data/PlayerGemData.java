@@ -15,8 +15,6 @@ public class PlayerGemData {
     private Tier tier = Tier.T1;
 
     private final Map<String, Long> cooldowns = new HashMap<>();
-
-    // НОВОЕ: Список доверенных игроков (Set хранит только уникальные значения, без дублей)
     private final Set<UUID> trustedPlayers = new HashSet<>();
 
     public PlayerGemData(UUID playerId) { this.playerId = playerId; }
@@ -35,11 +33,13 @@ public class PlayerGemData {
     public boolean isBroken() { return energy <= 0; }
     public boolean isRuined() { return energy <= 1; }
 
-    // НОВОЕ: Методы для работы с доверием
     public Set<UUID> getTrustedPlayers() { return trustedPlayers; }
     public void addTrusted(UUID uuid) { trustedPlayers.add(uuid); }
     public void removeTrusted(UUID uuid) { trustedPlayers.remove(uuid); }
     public boolean isTrusted(UUID uuid) { return trustedPlayers.contains(uuid); }
+
+    // НОВОЕ: Геттер для кулдаунов (нужен для сохранения)
+    public Map<String, Long> getCooldowns() { return cooldowns; }
 
     public boolean isOnCooldown(String abilityId) {
         Long ready = cooldowns.get(abilityId);
