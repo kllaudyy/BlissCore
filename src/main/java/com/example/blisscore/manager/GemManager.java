@@ -60,6 +60,13 @@ public class GemManager {
 
     public boolean activateAbility(Player player, Ability ability) {
         PlayerGemData data = getData(player);
+        
+        // НОВОЕ: Проверяем тир. Если способность требует T2, а у гема T1 — не даем использовать.
+        if (data.getTier().ordinal() < ability.getRequiredTier().ordinal()) {
+            player.sendMessage("§cЭта способность требует улучшения гема до " + ability.getRequiredTier() + "!");
+            return false;
+        }
+
         if (data.isBroken()) {
             player.sendMessage("§cГем сломан.");
             return false;
